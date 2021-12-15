@@ -1,8 +1,8 @@
-FROM azul/zulu-openjdk-alpine:8u292-8.54.0.21
+FROM arm64v8/amazoncorretto:8
 
 ARG kafka_version=2.8.1
 ARG scala_version=2.13
-ARG glibc_version=2.31-r0
+ARG glibc_version=2.32-2
 ARG vcs_ref=unspecified
 ARG build_date=unspecified
 
@@ -24,17 +24,17 @@ ENV PATH=${PATH}:${KAFKA_HOME}/bin
 
 COPY download-kafka.sh start-kafka.sh broker-list.sh create-topics.sh versions.sh /tmp/
 
-RUN apk add --no-cache bash curl jq docker \
+RUN yum install -y bash curl jq docker wget tar glibc gzip \
  && chmod a+x /tmp/*.sh \
  && mv /tmp/start-kafka.sh /tmp/broker-list.sh /tmp/create-topics.sh /tmp/versions.sh /usr/bin \
  && sync && /tmp/download-kafka.sh \
  && tar xfz /tmp/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz -C /opt \
  && rm /tmp/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz \
  && ln -s /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION} ${KAFKA_HOME} \
- && rm /tmp/* \
- && wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-${GLIBC_VERSION}.apk \
- && apk add --no-cache --allow-untrusted glibc-${GLIBC_VERSION}.apk \
- && rm glibc-${GLIBC_VERSION}.apk
+ && rm /tmp/*
+#  && wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-${GLIBC_VERSION}.apk \
+#  && yum install -y glibc-${GLIBC_VERSION}.apk \
+#  && rm glibc-${GLIBC_VERSION}.apk
 
 COPY overrides /opt/overrides
 
